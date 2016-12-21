@@ -49,26 +49,47 @@ define([
         attachImage.click()
     }
     function startUpload(e) {
-        var file = this.files[0]
-        var reader = new FileReader()
-        reader.addEventListener('load', function() {
+        var file = $('#attach_image')[0].files[0]
+        if (!file) return
+
+        var url = settings.couchdbUrl.replace('documents', 'attachments');
+        var formData = new FormData()
+        formData.append('_attachments', file)
+
+        var locations = fileMgr.currentFile.syncLocations
+        var editFile
+        for (var xx in locations) {
+            if (xx.indexOf('couchdb') > -1)
+                editFile = locations[xx]
+        }
+
+        $.ajax({type: 'GET', url: url+'/'+editFile.title, cache: false, dataType: 'json'}).done(function(meta) {
+            formData.append('_rev', meta._rev)
             $.ajax({
+                url: url + '/' + editFile.title,
                 type: 'POST',
-                url: settings.couchdbUrl.replace('documents', 'attachments'),
+                data: formData,
+                contentType: false,
+                processData: false
+            }).done(function(res) {
+                $('#input-insert-image').val(url + '/' + editFile.title + '/' + file.name)
+                console.log(res)
+            })
+        }).error(function(xhr) {
+            if (xhr.status != 404) return alert(xhr.status)
+            $.ajax({
+                url: url,
+                type: 'POST',
                 contentType: 'application/json',
                 dataType: 'json',
                 data: JSON.stringify({
-                    _id: 'images',
-                    updated: Date.now(),
-                    _rev: '3-2a9d3b73d4158726aa71c760c77a4647',
-                    _attachments: {
-                        content: {data: utils.encodeBase64(reader.result)}
-                    }
+                    _id: editFile.title,
+                    updated: Date.now()
                 })
-            }).done(function(res) {console.log(res)})
-        }, false)
-        if (file)
-            reader.readAsBinaryString(file)
+            }).done(function(res) {
+                startUpload()
+            })
+        })
     }
 
 	userCustom.onLoadSettings = function() {

@@ -75,62 +75,6 @@ define([
 		task.enqueue();
 	};
 
-    couchdbHelper.uploadImage = function(documentId, title, content, tags, rev, callback) {
-		var result;
-		var task = new AsyncTask();
-		task.onRun(function() {
-			if(tags) {
-				// Has to be an array
-				if(!_.isArray(tags)) {
-					tags = _.chain(('' + tags).split(/,/))
-						.compact()
-						.unique()
-						.value();
-				}
-				// Remove invalid tags
-				tags = tags.filter(function(tag) {
-					return _.isString(tag) && tag.length < 32;
-				});
-				// Limit the number of tags
-				tags = tags.slice(0, 16);
-			}
-			else {
-				tags = undefined;
-			}
-			$.ajax({
-				type: 'POST',
-				url: settings.couchdbUrl.replace('documents', 'attachments'),
-				contentType: 'application/json',
-				dataType: 'json',
-				data: JSON.stringify({
-					_id: documentId || utils.id(),
-					title: title,
-					tags: tags,
-					updated: Date.now(),
-					_rev: rev,
-					_attachments: {
-						content: {
-							content_type: 'image\/png',
-							data: utils.encodeBase64(content)
-						}
-					}
-				})
-			}).done(function(data) {
-				result = data;
-				task.chain();
-			}).fail(function(jqXHR) {
-				handleError(jqXHR, task);
-			});
-		});
-		task.onSuccess(function() {
-			callback(undefined, result);
-		});
-		task.onError(function(error) {
-			callback(error);
-		});
-		task.enqueue();
-	};
-
 	couchdbHelper.checkChanges = function(lastChangeId, syncLocations, callback) {
 		var changes;
 		var newChangeId = lastChangeId || 0;
