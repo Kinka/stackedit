@@ -26,7 +26,7 @@ requirejs.config({
 		mathjax: '../res/bower-libs/MathJax/MathJax.js?config=TeX-AMS_SVG',
 		bootstrap: 'bower-libs/bootstrap/dist/js/bootstrap',
 		requirejs: 'bower-libs/requirejs/require',
-		'google-code-prettify': 'bower-libs/google-code-prettify/src/prettify',
+		'google-code-prettify': 'bower-libs/google-code-prettify/bin/prettify.min',
 		highlightjs: 'libs/highlight/highlight.pack',
 		'jquery-waitforimages': 'bower-libs/waitForImages/src/jquery.waitforimages',
 		'jquery-ui': 'bower-libs/jquery-ui/ui/jquery-ui',
@@ -57,7 +57,7 @@ requirejs.config({
 		MutationObservers: 'bower-libs/MutationObservers/MutationObserver',
 		WeakMap: 'bower-libs/WeakMap/weakmap',
 		rangy: 'bower-libs/rangy/rangy-core',
-		'rangy-cssclassapplier': 'bower-libs/rangy/rangy-cssclassapplier',
+		'rangy-cssclassapplier': 'bower-libs/rangy/rangy-cssclassapplier.min',
 		diff_match_patch: 'bower-libs/google-diff-match-patch-js/diff_match_patch',
 		diff_match_patch_uncompressed: 'bower-libs/google-diff-match-patch-js/diff_match_patch_uncompressed',
 		jsondiffpatch: 'bower-libs/jsondiffpatch/build/bundle',
@@ -71,7 +71,10 @@ requirejs.config({
 		'to-markdown': 'bower-libs/to-markdown/src/to-markdown',
 		waitForImages: 'bower-libs/waitForImages/dist/jquery.waitforimages',
 		MathJax: 'bower-libs/MathJax/MathJax',
-		alertify: 'bower-libs/alertify.js/lib/alertify'
+		alertify: 'bower-libs/alertify.js/lib/alertify',
+		'rangy-core': 'bower-libs/rangy/rangy-core.min',
+		'rangy-selectionsaverestore': 'bower-libs/rangy/rangy-selectionsaverestore.min',
+		'rangy-serializer': 'bower-libs/rangy/rangy-serializer.min'
 	},
 	shim: {
 		underscore: {

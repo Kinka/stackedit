@@ -15,7 +15,7 @@ if(!process.env.NO_CLUSTER && cluster.isMaster) {
 	});
 }
 else {
-	var port = process.env.PORT || 3000;
+	var port = process.env.PORT || 2001;
 	if(port == 443) {
 		// OpsWorks configuration
 		var fs = require('fs');

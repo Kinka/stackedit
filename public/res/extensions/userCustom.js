@@ -35,8 +35,41 @@ define([
 		eventMgr = eventMgrParameter;
 		eventMgr.addListener('onReady', function() {
 			utils.createTooltip(".tooltip-usercustom-extension", tooltipUserCustomExtensionHTML);
+            $('#input-insert-image').prev('.input-group-addon').click(uploadImage)
+            $('#input-insert-image').append($("<input type='file' id='attach_image'/>"))
+            $('#attach_image').change(startUpload)
+//            console.log(fileMgr.currentFile)
 		});
 	};
+
+
+    function uploadImage() {
+        console.log('need uploadImage')
+        var attachImage = $('#attach_image')
+        attachImage.click()
+    }
+    function startUpload(e) {
+        var file = this.files[0]
+        var reader = new FileReader()
+        reader.addEventListener('load', function() {
+            $.ajax({
+                type: 'POST',
+                url: settings.couchdbUrl.replace('documents', 'attachments'),
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify({
+                    _id: 'images',
+                    updated: Date.now(),
+                    _rev: '3-2a9d3b73d4158726aa71c760c77a4647',
+                    _attachments: {
+                        content: {data: utils.encodeBase64(reader.result)}
+                    }
+                })
+            }).done(function(res) {console.log(res)})
+        }, false)
+        if (file)
+            reader.readAsBinaryString(file)
+    }
 
 	userCustom.onLoadSettings = function() {
 		utils.setInputValue("#textarea-usercustom-code", userCustom.config.code);
