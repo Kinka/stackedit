@@ -7223,7 +7223,7 @@ var saveAs = saveAs || function(t) {
  t.IMPORT_FILE_MAX_CONTENT_SIZE = 1e5, t.IMPORT_IMG_MAX_CONTENT_SIZE = 1e7, t.COUCHDB_PAGE_SIZE = 25, 
  t.TEMPORARY_FILE_INDEX = "file.tempIndex", t.WELCOME_DOCUMENT_TITLE = "Hello!", 
  t.DOWNLOAD_IMPORT_URL = "/downloadImport", t.PICASA_IMPORT_IMG_URL = "/picasaImportImg", 
- t.SSH_PUBLISH_URL = "/sshPublish", t.PDF_EXPORT_URL = "/pdfExport", t.COUCHDB_URL = "https://stackedit.smileupps.com/documents", 
+ t.SSH_PUBLISH_URL = "/sshPublish", t.PDF_EXPORT_URL = "/pdfExport", t.COUCHDB_URL = "https://ms.logger.im/couchdb/documents", 
  t.BASE_URL = "http://localhost/", t.GOOGLE_CLIENT_ID = "241271498917-lev37kef013q85avc91am1gccg5g8lrb.apps.googleusercontent.com", 
  t.GITHUB_CLIENT_ID = "e47fef6055344579799d", t.GATEKEEPER_URL = "https://stackedit-gatekeeper-localhost.herokuapp.com/", 
  t.TUMBLR_PROXY_URL = "https://stackedit-tumblr-proxy-local.herokuapp.com/", t.WORDPRESS_CLIENT_ID = "23361", 
@@ -21046,6 +21046,57 @@ function() {
 }), define("text!html/tooltipUserCustomExtension.html", [], function() {
  return 'Extension variable name:\n<b>userCustom</b>\n<br>\n<br>\n<b>Example:</b>\n<br />\nuserCustom.onPreviewFinished = function() {\n<br />\n&nbsp;&nbsp;eventMgr.onMessage(&quot;Finished!&quot;);\n<br />\n};\n<br />\n<br />\n<a target="_blank"\n\thref="https://github.com/benweet/stackedit/blob/master/doc/developer-guide.md#architecture">More\n\tinfo</a>\n<br />\n<br />\n<b class="text-danger"><i class="icon-attention"></i> Careful! This is subject to malicious code. Don\'t copy/paste untrusted content.</b>';
 }), define("extensions/userCustom", [ "jquery", "underscore", "utils", "classes/Extension", "fileSystem", "settings", "text!html/userCustomSettingsBlock.html", "text!html/tooltipUserCustomExtension.html" ], function($, _, utils, Extension, fileSystem, settings, userCustomSettingsBlockHTML, tooltipUserCustomExtensionHTML) {
+ function uploadImage() {
+  console.log("uploadImage");
+  var t = $("#attach_image");
+  t.click();
+ }
+ function startUpload(t) {
+  var e = $("#attach_image")[0].files[0];
+  if (e) {
+   if (e.size >= 1048576) return alert("file size too large");
+   var n = settings.couchdbUrl.replace("documents", "attachments"), i = new FormData();
+   i.append("_attachments", e);
+   var r, o = fileMgr.currentFile.syncLocations;
+   for (var a in o) a.indexOf("couchdb") > -1 && (r = o[a]);
+   $.ajax({
+    type: "GET",
+    url: n + "/" + r.title,
+    cache: !1,
+    dataType: "json"
+   }).done(function(t) {
+    i.append("_rev", t._rev), $.ajax({
+     url: n + "/" + r.title,
+     type: "POST",
+     data: i,
+     xhr: function() {
+      var t = $.ajaxSettings.xhr();
+      return t.upload.addEventListener("progress", function(t) {
+       var e = (t.loaded / t.total * 100).toFixed(0);
+       $("#input-insert-image").val("").attr("placeholder", e + "%");
+      }), t;
+     },
+     contentType: !1,
+     processData: !1
+    }).done(function(t) {
+     $("#input-insert-image").val(n + "/" + r.title + "/" + e.name), console.log(t);
+    });
+   }).error(function(t) {
+    return 404 != t.status ? alert(t.status) : void $.ajax({
+     url: n,
+     type: "POST",
+     contentType: "application/json",
+     dataType: "json",
+     data: JSON.stringify({
+      _id: r.title,
+      updated: Date.now()
+     })
+    }).done(function(t) {
+     startUpload();
+    });
+   });
+  }
+ }
  var userCustom = new Extension("userCustom", "UserCustom extension", (!0));
  userCustom.settingsBlock = userCustomSettingsBlockHTML, userCustom.defaultConfig = {
   code: ""
@@ -21065,7 +21116,11 @@ function() {
  var eventMgr;
  return userCustom.onEventMgrCreated = function(t) {
   eventMgr = t, eventMgr.addListener("onReady", function() {
-   utils.createTooltip(".tooltip-usercustom-extension", tooltipUserCustomExtensionHTML);
+   utils.createTooltip(".tooltip-usercustom-extension", tooltipUserCustomExtensionHTML), 
+   $("#input-insert-image").prev(".input-group-addon").click(uploadImage).css({
+    cursor: "pointer"
+   }).attr("title", "click to upload image"), $("#input-insert-image").append($("<input type='file' id='attach_image' accept='image/*'/>")), 
+   $("#attach_image").change(startUpload);
   });
  }, userCustom.onLoadSettings = function() {
   utils.setInputValue("#textarea-usercustom-code", userCustom.config.code);
@@ -26256,7 +26311,7 @@ this.DIFF_EQUAL = DIFF_EQUAL, define("diff_match_patch_uncompressed", function(t
      _rev: l,
      _attachments: {
       content: {
-       content_type: "text/plain",
+       content_type: "text/plain;charset=utf-8",
        data: i.encodeBase64(o)
       }
      }
