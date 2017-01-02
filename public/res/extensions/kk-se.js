@@ -9,7 +9,7 @@ define([
 	"text!html/tooltipUserCustomExtension.html"
 ], function($, _, utils, Extension, fileSystem, settings, userCustomSettingsBlockHTML, tooltipUserCustomExtensionHTML) {
 
-	var userCustom = new Extension("userCustom", "UserCustom extension", true);
+	var userCustom = new Extension("KkSE", "Kinka's Custom Extension", true);
 	userCustom.settingsBlock = userCustomSettingsBlockHTML;
 	userCustom.defaultConfig = {
 		code: ""
@@ -35,6 +35,7 @@ define([
 		eventMgr = eventMgrParameter;
 		eventMgr.addListener('onReady', function() {
 			utils.createTooltip(".tooltip-usercustom-extension", tooltipUserCustomExtensionHTML);
+            armAutoUpload()
 		});
 	};
 

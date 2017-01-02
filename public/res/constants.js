@@ -1,7 +1,7 @@
 define([], function() {
 	var constants = {};
 	constants.VERSION = "4.3.14";
-	constants.MAIN_URL = "https://stackedit.io/";
+	constants.MAIN_URL = "https://se.logger.im/";
 	constants.GOOGLE_ANALYTICS_ACCOUNT_ID = "UA-39556145-1";
 	constants.GOOGLE_API_KEY = "AIzaSyAeCU8CGcSkn0z9js6iocHuPBX4f_mMWkw";
 	constants.GOOGLE_DRIVE_APP_ID = "241271498917";
@@ -29,10 +29,10 @@ define([], function() {
 	constants.SSH_PUBLISH_URL = '/sshPublish';
 	constants.PDF_EXPORT_URL = "/pdfExport";
 	//constants.COUCHDB_URL = 'https://stackedit.smileupps.com/documents';
-	constants.COUCHDB_URL = 'https://ms.logger.im/couchdb/documents';
+	constants.COUCHDB_URL = 'https://se.logger.im/couchdb/documents';
 
 	// Site dependent
-	constants.BASE_URL = "http://localhost/";
+	constants.BASE_URL = "https://se.logger.im/";
 	constants.GOOGLE_CLIENT_ID = '241271498917-lev37kef013q85avc91am1gccg5g8lrb.apps.googleusercontent.com';
 	constants.GITHUB_CLIENT_ID = 'e47fef6055344579799d';
 	constants.GATEKEEPER_URL = "https://stackedit-gatekeeper-localhost.herokuapp.com/";
