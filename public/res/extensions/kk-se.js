@@ -6,8 +6,8 @@ define([
 	"fileSystem",
 	"settings",
 	"text!html/userCustomSettingsBlock.html",
-	"text!html/tooltipUserCustomExtension.html"
-], function($, _, utils, Extension, fileSystem, settings, userCustomSettingsBlockHTML, tooltipUserCustomExtensionHTML) {
+	"text!html/kkLogin.html"
+], function($, _, utils, Extension, fileSystem, settings, userCustomSettingsBlockHTML, kkLoginHTML) {
 
 	var userCustom = new Extension("KkSE", "Kinka's Custom Extension", true);
 	userCustom.settingsBlock = userCustomSettingsBlockHTML;
@@ -34,10 +34,43 @@ define([
 	userCustom.onEventMgrCreated = function(eventMgrParameter) {
 		eventMgr = eventMgrParameter;
 		eventMgr.addListener('onReady', function() {
-			utils.createTooltip(".tooltip-usercustom-extension", tooltipUserCustomExtensionHTML);
+            utils.addModal('modal-kk-login', _.template(kkLoginHTML, {}));
+            armCouchdbLogin()
             armAutoUpload()
+            armDateHelper()
 		});
+        eventMgr.addListener('onError', function(err) {
+            if (err && err.message && err.message.startsWith('Error 401:'))
+                $('.modal-kk-login').modal('show')
+        })
 	};
+
+    function armDateHelper() {  
+        var editor = requirejs('./editor')
+        $('.editor-content').keydown(function(e) {
+            if (e.keyCode != 120) return // F9
+            var d = new Date()
+            var s = d.getFullYear() + '-' + zeroPack(d.getMonth() + 1) + '-' + zeroPack(d.getDate())
+            editor.replace(editor.selectionMgr.selectionStart, editor.selectionMgr.selectionEnd, s)
+        })
+        function zeroPack(n) {return n < 10 ? '0'+n : n}
+    }
+
+    function armCouchdbLogin() {
+        var user = $('#couchdb_user'),
+            pwd = $('#couchdb_pwd'),
+            btnOK = $('#couchdb_submit');
+        btnOK.click(function() {
+            var url = settings.couchdbUrl.replace('documents', '_session');
+            $.post(url, {name: user.val().trim(), password: pwd.val()})
+            .done(function(data) {
+                console.log(data)
+                $('.modal-kk-login').modal('hide')
+            }).error(function(data) {
+                $('#couchdb_info').html(data.responseText);
+            })
+        })
+    }
 
     function armAutoUpload() {
         var inputInsertImage = $('#input-insert-image')
