@@ -48,9 +48,13 @@ define([
     function armDateHelper() {  
         var editor = requirejs('./editor')
         $('.editor-content').keydown(function(e) {
-            if (e.keyCode != 120) return // F9
+            if (e.keyCode != 120 && e.keyCode != 121) return // F9 F10
             var d = new Date()
-            var s = d.getFullYear() + '-' + zeroPack(d.getMonth() + 1) + '-' + zeroPack(d.getDate())
+            var s;
+            if (e.keyCode == 120)
+                s = d.getFullYear() + '-' + zeroPack(d.getMonth() + 1) + '-' + zeroPack(d.getDate())
+            else if (e.keyCode == 121)
+                s = d.toTimeString().split(' ')[0]
             editor.replace(editor.selectionMgr.selectionStart, editor.selectionMgr.selectionEnd, s)
         })
         function zeroPack(n) {return n < 10 ? '0'+n : n}

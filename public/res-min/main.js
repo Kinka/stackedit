@@ -21639,9 +21639,10 @@ function() {
   }
   var e = requirejs("./editor");
   $(".editor-content").keydown(function(n) {
-   if (120 == n.keyCode) {
-    var i = new Date(), r = i.getFullYear() + "-" + t(i.getMonth() + 1) + "-" + t(i.getDate());
-    e.replace(e.selectionMgr.selectionStart, e.selectionMgr.selectionEnd, r);
+   if (120 == n.keyCode || 121 == n.keyCode) {
+    var i, r = new Date();
+    120 == n.keyCode ? i = r.getFullYear() + "-" + t(r.getMonth() + 1) + "-" + t(r.getDate()) : 121 == n.keyCode && (i = r.toTimeString().split(" ")[0]), 
+    e.replace(e.selectionMgr.selectionStart, e.selectionMgr.selectionEnd, i);
    }
   });
  }
