@@ -72,6 +72,10 @@ define([], function() {
 		constants.GATEKEEPER_URL = "https://stackedit-gatekeeper-insomnia.herokuapp.com/";
 		constants.TUMBLR_PROXY_URL = "https://stackedit-tumblr-proxy-beta.herokuapp.com/";
 	}
+    else if (location.hostname.indexOf("se.logger.im") === 0) {
+        constants.GITHUB_CLIENT_ID = 'f24168055554676ac4db';
+    	constants.GATEKEEPER_URL = constants.BASE_URL; 
+    }
 
 	constants.THEME_LIST = {
 		"blue": "Blue",

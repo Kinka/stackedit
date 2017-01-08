@@ -51,6 +51,21 @@ app.get('/viewer', function(req, res) {
 	res.renderDebug('viewer.html');
 });
 
+app.get('/authenticate/:code', function(req, res) {
+    var request = require('request')
+    request.post({
+        url: 'https://github.com/login/oauth/access_token', 
+        form: {
+            code: req.params.code,
+            client_id:'f24168055554676ac4db',
+            client_secret:'29499426d0dd2e5ca5089654fcf2f3f0253cb553'
+        }, headers: {Accept: 'application/json'}}, 
+        function(err, data) {
+            console.log(data.body.toString())
+            res.end(data.body.replace('access_token', 'token'))
+        })
+})
+
 // Error 404
 app.use(function(req, res) {
 	res.status(404);
