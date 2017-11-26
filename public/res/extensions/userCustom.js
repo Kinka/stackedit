@@ -100,7 +100,12 @@ define([
 
         var url = settings.couchdbUrl.replace('documents', 'images');
         var formData = new FormData()
-        formData.append('_attachments', file, file.name)
+        var imgName = file.name
+        if (!imgName || imgName === 'image.png') {
+            imgName = 'image_' + (+new Date()) + '.png'
+        }
+        file.name = imgName
+        formData.append('_attachments', file, imgName)
 
         var currentFile = fileMgr.currentFile
 

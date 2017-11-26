@@ -99,9 +99,9 @@ define([
                     m = item.type.match(/image\/(jpeg|png|gif)/i)
                 if (!m) return
                 var file = item.getAsFile()
-                file.name = Date.now() + '.' + m[1].replace('e', '')
+                var fileName = 'paste_' + Date.now() + '.' + m[1].replace('e', '')
                 $('#wmd-image-button').click()
-                startUpload(file)
+                startUpload(file, fileName)
             } else if (items.length == 2) {
                 var text = items[0],
                     data = items[1];
@@ -119,26 +119,28 @@ define([
                         // getfilename
                         var a = document.createElement('a')
                         a.href = m[1]
+                        var fileName = ''
                         var name = a.pathname.split('/').pop()
-                        if (name) file.name = name
-                        if (!file.name) file.name = Date.now() + '.' + imageType.replace('e', '')
+                        if (name) fileName = name
+                        if (!file.name) fileName = 'paste2_' + Date.now() + '.' + imageType.replace('e', '')
                         $('#wmd-image-button').click()
-                        startUpload(file)
+                        startUpload(file, fileName)
                     }
                 })
             }
         })
     }
-    function startUpload(file) {
+    function startUpload(file, fileName) {
         if (!file) return
         if (file.size >= 1 * 1024 * 1024) return alert('file size too large')
 
+        fileName = fileName || file.name
         var inputInsertImage = $('#input-insert-image')
         var attachImage = $('#attach_image')
 
         var url = settings.couchdbUrl.replace('documents', 'images');
         var formData = new FormData()
-        formData.append('_attachments', file, file.name)
+        formData.append('_attachments', file, fileName)
 
         var currentFile = fileMgr.currentFile
 
@@ -160,10 +162,10 @@ define([
                 contentType: false,
                 processData: false
             }).done(function(res) {
-                inputInsertImage.val(url + '/' + currentFile.title + '/' + file.name)
+                inputInsertImage.val(url + '/' + currentFile.title + '/' + fileName)
                     .attr('placeholder', oldPH)
                 attachImage.val('')
-                eventMgr.onMessage('file uploaded: ' + file.name)
+                eventMgr.onMessage('file uploaded: ' + fileName)
                 console.log(res)
             })
         }).error(function(xhr) {
@@ -178,7 +180,7 @@ define([
                     updated: Date.now()
                 })
             }).done(function(res) {
-                startUpload(file)
+                startUpload(file, fileName)
             })
         })
     }
