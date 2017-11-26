@@ -47,22 +47,40 @@ define([
                 var newFileName = value.match(/\/([^/]+)$/)
                 newFileName = newFileName && newFileName[1]
                 if (!newFileName) return eventMgr.onMessage('识别不出文件名' + newFileName)
-                
-                delImage().then(function(res) {
-                    startUpload(startUpload.latest.file, newFileName, res.rev)
+
+                var latest = startUpload.latest
+                startUpload(latest.file, newFileName, latest.rev).then(function(res) {
+                    latest.rev = res.rev
+                    delImage(latest)
                 })
-            }).prev('.btn').click(delImage) // cancel
+            }).prev('.btn').click(function() {
+                delImage(startUpload.latest)
+            }) // cancel
 		});
         eventMgr.addListener('onError', function(err) {
             if (err && err.message && err.message.startsWith('Error 401:'))
                 $('.modal-kk-login').modal('show')
         })
+        eventMgr.addListener('onTitleChanged', function(fileDesc) {
+            var newTitle = fileDesc.title
+            var url = settings.couchdbUrl.replace('documents', 'images');
+            
+            $.ajax({
+                url: url + '/_design/title/_update/doit/' + fileDesc.fileIndex + '?' + $.param({title: newTitle}),
+                type: 'PUT',
+                contentType: false,
+                processData: false,
+                dataType: 'json'
+            }).then(function(res) {
+                console.log('updateTitle', res)
+                return res
+            })
+        })
 	};
 
     
-    function delImage() {
-        if (!startUpload.latest) return
-        var latest = startUpload.latest
+    function delImage(latest) {
+        if (!latest) return
 
         return $.ajax({
             url: latest.imageUrl + '?' + $.param({rev: latest.rev}),
@@ -174,26 +192,32 @@ define([
         formData.append('_attachments', file, fileName)
 
         var currentFile = fileMgr.currentFile
+        var docUrl = url + '/' + currentFile.fileIndex
 
         if (rev) {
-            doUpload(rev)
+            return doUpload(rev)
         } else {
-            $.ajax({type: 'GET', url: url+'/'+currentFile.title, cache: false, dataType: 'json'}).done(function(meta) {
-                doUpload(meta._rev)
-            }).error(function(xhr) {
+            var p = $.ajax({type: 'HEAD', url: docUrl, cache: false, dataType: 'json'})
+            
+            p.error(function(xhr) {
                 if (xhr.status != 404) return alert(xhr.status)
-                $.ajax({
+                return $.ajax({
                     url: url,
                     type: 'POST',
                     contentType: 'application/json',
                     dataType: 'json',
                     data: JSON.stringify({
-                        _id: currentFile.title,
-                        updated: Date.now()
+                        _id: currentFile.fileIndex,
+                        title: currentFile.title,
                     })
-                }).done(function(res) {
-                    startUpload(file, fileName)
+                }).then(function(res) {
+                    return startUpload(file, fileName)
                 })
+            })
+
+            return p.then(function(_, _, xhr) {
+                var rev = JSON.parse(xhr.getResponseHeader('etag'))
+                return doUpload(rev)
             })
         }
 
@@ -201,8 +225,8 @@ define([
             var oldPH = inputInsertImage.attr('placeholder')
 
             formData.append('_rev', rev)
-            $.ajax({
-                url: url + '/' + currentFile.title,
+            return $.ajax({
+                url: docUrl,
                 type: 'POST',
                 data: formData,
                 xhr: function() {
@@ -216,8 +240,8 @@ define([
                 contentType: false,
                 processData: false,
                 dataType: 'json'
-            }).done(function(res) {
-                var imageUrl = url + '/' + currentFile.title + '/' + fileName
+            }).then(function(res) {
+                var imageUrl = docUrl + '/' + fileName
                 inputInsertImage.val(imageUrl)
                     .attr('placeholder', oldPH)
                 attachImage.val('')
@@ -225,12 +249,11 @@ define([
                 startUpload.latest = {
                     file: file,
                     fileName: fileName,
-                    url: url,
                     rev: res.rev,
-                    id: res.id,
                     imageUrl: imageUrl,
                 }
-                console.log(res)
+                console.log('doUpload', res)
+                return res
             })
         }
     }
