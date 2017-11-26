@@ -1810,9 +1810,15 @@
                     //chunk.endTag = "][" + num + "]";
                     chunk.endTag = "](" + properlyEncoded(link) + ")";
 
+                    var optionalTitle = link.match(/\s"(.+)"/)
+                    optionalTitle = optionalTitle && optionalTitle[1]
+                    
+                    var fileName = link.match(/\/([^/]+)\.[\w]+(?:$|\s)/)
+                    fileName = fileName && fileName[1]
+
                     if (!chunk.selection) {
                         if (isImage) {
-                            chunk.selection = that.getString("imagedescription");
+                            chunk.selection = optionalTitle || fileName || that.getString("imagedescription");
                         }
                         else {
                             chunk.selection = that.getString("linkdescription");

@@ -38,12 +38,42 @@ define([
             armCouchdbLogin()
             armAutoUpload()
             armDateHelper()
+
+            $(".action-insert-image").click(function(e) {
+                var value = utils.getInputTextValue($("#input-insert-image"), e);
+                if (!startUpload.latest) return
+                if (startUpload.latest.imageUrl === value) return
+                // 重命名
+                var newFileName = value.match(/\/([^/]+)$/)
+                newFileName = newFileName && newFileName[1]
+                if (!newFileName) return eventMgr.onMessage('识别不出文件名' + newFileName)
+                
+                delImage().then(function(res) {
+                    startUpload(startUpload.latest.file, newFileName, res.rev)
+                })
+            }).prev('.btn').click(delImage) // cancel
 		});
         eventMgr.addListener('onError', function(err) {
             if (err && err.message && err.message.startsWith('Error 401:'))
                 $('.modal-kk-login').modal('show')
         })
 	};
+
+    
+    function delImage() {
+        if (!startUpload.latest) return
+        var latest = startUpload.latest
+
+        return $.ajax({
+            url: latest.imageUrl + '?' + $.param({rev: latest.rev}),
+            type: 'DELETE',
+            dataType: 'json',
+        }).then(function(res) {
+            eventMgr.onMessage('file deleted: ' + latest.fileName)
+            console.log('delete res', res)
+            return res
+        })
+    }
 
     function armDateHelper() {  
         var editor = requirejs('./editor')
@@ -130,7 +160,8 @@ define([
             }
         })
     }
-    function startUpload(file, fileName) {
+    function startUpload(file, fileName, rev) {
+        startUpload.latest = undefined
         if (!file) return
         if (file.size >= 1 * 1024 * 1024) return alert('file size too large')
 
@@ -144,9 +175,32 @@ define([
 
         var currentFile = fileMgr.currentFile
 
-        var oldPH = inputInsertImage.attr('placeholder')
-        $.ajax({type: 'GET', url: url+'/'+currentFile.title, cache: false, dataType: 'json'}).done(function(meta) {
-            formData.append('_rev', meta._rev)
+        if (rev) {
+            doUpload(rev)
+        } else {
+            $.ajax({type: 'GET', url: url+'/'+currentFile.title, cache: false, dataType: 'json'}).done(function(meta) {
+                doUpload(meta._rev)
+            }).error(function(xhr) {
+                if (xhr.status != 404) return alert(xhr.status)
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    data: JSON.stringify({
+                        _id: currentFile.title,
+                        updated: Date.now()
+                    })
+                }).done(function(res) {
+                    startUpload(file, fileName)
+                })
+            })
+        }
+
+        function doUpload(rev) {
+            var oldPH = inputInsertImage.attr('placeholder')
+
+            formData.append('_rev', rev)
             $.ajax({
                 url: url + '/' + currentFile.title,
                 type: 'POST',
@@ -160,29 +214,25 @@ define([
                     return xhr
                 },
                 contentType: false,
-                processData: false
+                processData: false,
+                dataType: 'json'
             }).done(function(res) {
-                inputInsertImage.val(url + '/' + currentFile.title + '/' + fileName)
+                var imageUrl = url + '/' + currentFile.title + '/' + fileName
+                inputInsertImage.val(imageUrl)
                     .attr('placeholder', oldPH)
                 attachImage.val('')
                 eventMgr.onMessage('file uploaded: ' + fileName)
+                startUpload.latest = {
+                    file: file,
+                    fileName: fileName,
+                    url: url,
+                    rev: res.rev,
+                    id: res.id,
+                    imageUrl: imageUrl,
+                }
                 console.log(res)
             })
-        }).error(function(xhr) {
-            if (xhr.status != 404) return alert(xhr.status)
-            $.ajax({
-                url: url,
-                type: 'POST',
-                contentType: 'application/json',
-                dataType: 'json',
-                data: JSON.stringify({
-                    _id: currentFile.title,
-                    updated: Date.now()
-                })
-            }).done(function(res) {
-                startUpload(file, fileName)
-            })
-        })
+        }
     }
 
 	userCustom.onLoadSettings = function() {
