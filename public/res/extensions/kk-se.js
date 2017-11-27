@@ -66,7 +66,7 @@ define([
             var url = settings.couchdbUrl.replace('documents', 'images');
             
             $.ajax({
-                url: url + '/_design/title/_update/doit/' + fileDesc.fileIndex + '?' + $.param({title: newTitle}),
+                url: url + '/_design/title/_update/doit/' + getSyncId(fileDesc) + '?' + $.param({title: newTitle}),
                 type: 'PUT',
                 contentType: false,
                 processData: false,
@@ -78,7 +78,14 @@ define([
         })
 	};
 
-    
+    function getSyncId(fileDesc) {
+        for (var key in fileDesc.syncLocations) {
+            var loc = fileDesc.syncLocations[key]
+            if (loc.provider && loc.provider.providerId === 'couchdb')
+                return loc.id
+        }
+    }
+
     function delImage(latest) {
         if (!latest) return
 
@@ -192,7 +199,7 @@ define([
         formData.append('_attachments', file, fileName)
 
         var currentFile = fileMgr.currentFile
-        var docUrl = url + '/' + currentFile.fileIndex
+        var docUrl = url + '/' + getSyncId(currentFile)
 
         if (rev) {
             return doUpload(rev)
@@ -207,7 +214,7 @@ define([
                     contentType: 'application/json',
                     dataType: 'json',
                     data: JSON.stringify({
-                        _id: currentFile.fileIndex,
+                        _id: getSyncId(currentFile),
                         title: currentFile.title,
                     })
                 }).then(function(res) {
