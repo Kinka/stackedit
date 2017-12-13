@@ -28984,4 +28984,5 @@ require([ "jquery", "rangy", "core", "eventMgr", "synchronizer", "publisher", "s
    i.onMessage("New version available!\nJust refresh the page to upgrade."));
   }, !1);
  });
-}), define("main", function() {});
+}), "serviceWorker" in navigator && navigator.serviceWorker.register("/sw.js"), 
+define("main", function() {});
