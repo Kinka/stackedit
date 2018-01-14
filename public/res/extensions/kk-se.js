@@ -65,8 +65,13 @@ define([
             var newTitle = fileDesc.title
             var url = settings.couchdbUrl.replace('documents', 'images');
             
+            /** images/_design/title 修改文章title的时候，也同步修改图片的title字段
+            {
+                "doit": "function (doc, req) { if (!doc) return [doc, toJSON({status: 'not found'})]; doc.title = req.query.title; return [doc, toJSON({rev: doc._rev, title: doc.title, id: doc._id, status: 'ok'})];}"
+            }
+             */
             $.ajax({
-                url: url + '/_design/title/_update/doit/' + getSyncId(fileDesc) + '?' + $.param({title: newTitle}),
+                url: url + '/_design/title/_update/doit/' + fileDesc.fileIndex + '?' + $.param({title: newTitle}),
                 type: 'PUT',
                 contentType: false,
                 processData: false,
@@ -78,14 +83,7 @@ define([
         })
 	};
 
-    function getSyncId(fileDesc) {
-        for (var key in fileDesc.syncLocations) {
-            var loc = fileDesc.syncLocations[key]
-            if (loc.provider && loc.provider.providerId === 'couchdb')
-                return loc.id
-        }
-    }
-
+    
     function delImage(latest) {
         if (!latest) return
 
@@ -199,7 +197,7 @@ define([
         formData.append('_attachments', file, fileName)
 
         var currentFile = fileMgr.currentFile
-        var docUrl = url + '/' + getSyncId(currentFile)
+        var docUrl = url + '/' + currentFile.fileIndex
 
         if (rev) {
             return doUpload(rev)
@@ -214,7 +212,7 @@ define([
                     contentType: 'application/json',
                     dataType: 'json',
                     data: JSON.stringify({
-                        _id: getSyncId(currentFile),
+                        _id: currentFile.fileIndex,
                         title: currentFile.title,
                     })
                 }).then(function(res) {
