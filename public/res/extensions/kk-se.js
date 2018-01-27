@@ -38,6 +38,7 @@ define([
             armCouchdbLogin()
             armAutoUpload()
             armDateHelper()
+            mappingKeyboard()
 
             $(".action-insert-image").click(function(e) {
                 var value = utils.getInputTextValue($("#input-insert-image"), e);
@@ -110,7 +111,19 @@ define([
                 s = d.toTimeString().split(' ')[0]
             editor.replace(editor.selectionMgr.selectionStart, editor.selectionMgr.selectionEnd, s)
         })
+        console.log(editor.selectionMgr)
+        window.selectionMgr = editor.selectionMgr
         function zeroPack(n) {return n < 10 ? '0'+n : n}
+    }
+
+    function mappingKeyboard() {
+        if (!navigator.userAgent.match(/Macintosh/i)) return
+        var editor = requirejs('./editor')
+        $('.editor-content').keydown(function(e) {
+            if (e.key === 'Home' || e.key === 'End') {
+                e.preventDefault()
+            }
+        }) 
     }
 
     function armCouchdbLogin() {
