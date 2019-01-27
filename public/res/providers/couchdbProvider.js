@@ -164,7 +164,7 @@ define([
 	};
 
 	couchdbProvider.syncDown = function(callback) {
-		var lastChangeId = parseInt(storage[PROVIDER_COUCHDB + ".lastChangeId"], 10);
+		var lastChangeId = storage[PROVIDER_COUCHDB + ".lastChangeId"];
 		var syncLocations = {};
 		_.each(fileSystem, function(fileDesc) {
 			_.each(fileDesc.syncLocations, function(syncAttributes) {
