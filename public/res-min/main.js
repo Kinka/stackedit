@@ -21634,12 +21634,6 @@ function() {
 }), define("text!html/kkLogin.html", [], function() {
  return '<div class="modal-dialog">\n    <div class="modal-content">\n        <div class="modal-header">\n            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>\n            <img height="64" data-stackedit-src="logo.svg" />\n        </div>\n        <div class="modal-body">\n            <div class=\'form-horizontal\'>\n                <div class=\'alert alert-warning\' id="couchdb_info">\n                    Need Login To Your CouchDB:                \n                </div>\n                <div class="form-group">\n                    <label class="col-sm-4 control-label" for="input-settings-cursor-focus">User</label>\n                    <div class="col-sm-8 form-inline">\n                        <input type="text" id="couchdb_user" class="form-control col-sm-8">\n                    </div>\n                </div>\n                <div class="form-group">\n                    <label class="col-sm-4 control-label" for="input-settings-cursor-focus">Password</label>\n                    <div class="col-sm-8 form-inline">\n                        <input type="password" id="couchdb_pwd" class="form-control col-sm-8">\n                    </div>\n                </div>\n            </div>\n\t\t</div>\n\t\t<div class="modal-footer">\n\t\t\t<a href="#" id="couchdb_submit" class="btn btn-primary">OK</a>\n\t\t\t<a href="#" id="couchdb_submit" class="btn" data-dismiss="modal">Close</a>\n\t\t</div>\n\t</div>\n</div>\n';
 }), define("extensions/kk-se", [ "jquery", "underscore", "utils", "classes/Extension", "fileSystem", "settings", "text!html/userCustomSettingsBlock.html", "text!html/kkLogin.html" ], function($, _, utils, Extension, fileSystem, settings, userCustomSettingsBlockHTML, kkLoginHTML) {
- function getSyncId(t) {
-  for (var e in t.syncLocations) {
-   var n = t.syncLocations[e];
-   if (n.provider && "couchdb" === n.provider.providerId) return n.id;
-  }
- }
  function delImage(t) {
   if (t) return $.ajax({
    url: t.imageUrl + "?" + $.param({
@@ -21663,7 +21657,15 @@ function() {
     120 == n.keyCode ? i = r.getFullYear() + "-" + t(r.getMonth() + 1) + "-" + t(r.getDate()) : 121 == n.keyCode && (i = r.toTimeString().split(" ")[0]), 
     e.replace(e.selectionMgr.selectionStart, e.selectionMgr.selectionEnd, i);
    }
-  });
+  }), console.log(e.selectionMgr), window.selectionMgr = e.selectionMgr;
+ }
+ function mappingKeyboard() {
+  if (navigator.userAgent.match(/Macintosh/i)) {
+   requirejs("./editor");
+   $(".editor-content").keydown(function(t) {
+    "Home" !== t.key && "End" !== t.key || t.preventDefault();
+   });
+  }
  }
  function armCouchdbLogin() {
   var t = $("#couchdb_user"), e = $("#couchdb_pwd"), n = $("#couchdb_submit");
@@ -21749,7 +21751,7 @@ function() {
    e = e || t.name;
    var r = $("#input-insert-image"), o = $("#attach_image"), a = settings.couchdbUrl.replace("documents", "images"), s = new FormData();
    s.append("_attachments", t, e);
-   var l = fileMgr.currentFile, c = a + "/" + getSyncId(l);
+   var l = fileMgr.currentFile, c = a + "/" + l.fileIndex;
    if (n) return i(n);
    var u = $.ajax({
     type: "HEAD",
@@ -21764,7 +21766,7 @@ function() {
      contentType: "application/json",
      dataType: "json",
      data: JSON.stringify({
-      _id: getSyncId(l),
+      _id: l.fileIndex,
       title: l.title
      })
     }).then(function(n) {
@@ -21796,7 +21798,7 @@ function() {
  return userCustom.onEventMgrCreated = function(t) {
   eventMgr = t, eventMgr.addListener("onReady", function() {
    utils.addModal("modal-kk-login", _.template(kkLoginHTML, {})), armCouchdbLogin(), 
-   armAutoUpload(), armDateHelper(), $(".action-insert-image").click(function(t) {
+   armAutoUpload(), armDateHelper(), mappingKeyboard(), $(".action-insert-image").click(function(t) {
     var e = utils.getInputTextValue($("#input-insert-image"), t);
     if (startUpload.latest && startUpload.latest.imageUrl !== e) {
      var n = e.match(/\/([^\/]+)$/);
@@ -21814,7 +21816,7 @@ function() {
   }), eventMgr.addListener("onTitleChanged", function(t) {
    var e = t.title, n = settings.couchdbUrl.replace("documents", "images");
    $.ajax({
-    url: n + "/_design/title/_update/doit/" + getSyncId(t) + "?" + $.param({
+    url: n + "/_design/title/_update/doit/" + t.fileIndex + "?" + $.param({
      title: e
     }),
     type: "PUT",
@@ -26572,7 +26574,7 @@ this.DIFF_EQUAL = DIFF_EQUAL, define("diff_match_patch_uncompressed", function(t
    d(t);
   }), h.enqueue();
  }, d.checkChanges = function(n, i, r) {
-  var o, a = n || 0, l = new c();
+  var o, a = n || void 0, l = new c();
   l.onRun(function() {
    t.ajax({
     type: "POST",
@@ -26741,7 +26743,7 @@ this.DIFF_EQUAL = DIFF_EQUAL, define("diff_match_patch_uncompressed", function(t
    s.contentCRC = e, s.titleCRC = i, s.discussionListCRC = o, void l(void 0, !0));
   });
  }, x.syncDown = function(t) {
-  var n = parseInt(a[y + ".lastChangeId"], 10), i = {};
+  var n = a[y + ".lastChangeId"], i = {};
   e.each(p, function(t) {
    e.each(t.syncLocations, function(t) {
     t.provider === x && (i[t.id] = t);
