@@ -26574,7 +26574,7 @@ this.DIFF_EQUAL = DIFF_EQUAL, define("diff_match_patch_uncompressed", function(t
    d(t);
   }), h.enqueue();
  }, d.checkChanges = function(n, i, r) {
-  var o, a = n || void 0, l = new c();
+  var o, a = n || 0, l = new c();
   l.onRun(function() {
    t.ajax({
     type: "POST",

@@ -77,7 +77,7 @@ define([
 
 	couchdbHelper.checkChanges = function(lastChangeId, syncLocations, callback) {
 		var changes;
-		var newChangeId = lastChangeId || undefined;
+		var newChangeId = lastChangeId || 0;
 		var task = new AsyncTask();
 		task.onRun(function() {
 			$.ajax({
